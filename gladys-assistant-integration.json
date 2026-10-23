@@ -6,8 +6,8 @@
     "en": "Unofficial: Rainforest Eagle-200/Eagle-3 on your network: smart meter power and index.",
     "fr": "Non officiel : Rainforest Eagle-200/Eagle-3 en local : puissance et index du compteur."
   },
-  "version": "0.1.0",
-  "docker_image": "ghcr.io/lm1lc3n7/gladys-rainforest-eagle:0.1.0",
+  "version": "0.1.1",
+  "docker_image": "ghcr.io/lm1lc3n7/gladys-rainforest-eagle:0.1.1",
   "gladys_version": ">=5.2.0",
   "cover_image": "https://raw.githubusercontent.com/LM1LC3N7/gladys-rainforest-eagle/main/cover.png",
   "categories": ["energy"],

@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-23
+
 ### Added
 
 - Local reading of a Rainforest Eagle-200 (and Eagle-3, same local API, not
@@ -40,4 +42,5 @@ the notes of the version's GitHub Release.
 - Documentation in English and French; `LICENSE` (Apache-2.0) and
   `THIRD_PARTY_NOTICES.md` (aioeagle, Apache-2.0), shipped in the image.
 
-[Unreleased]: https://github.com/LM1LC3N7/gladys-rainforest-eagle/commits/main
+[Unreleased]: https://github.com/LM1LC3N7/gladys-rainforest-eagle/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/LM1LC3N7/gladys-rainforest-eagle/releases/tag/v0.1.1
