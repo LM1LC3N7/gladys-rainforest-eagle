@@ -1,6 +1,6 @@
 {
   "name": "gladys-rainforest-eagle",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Rainforest Eagle-200 and Eagle-3 for Gladys Assistant: the power and the energy indexes of the smart meter, read through the local API of the gateway. Read-only.",
   "type": "module",

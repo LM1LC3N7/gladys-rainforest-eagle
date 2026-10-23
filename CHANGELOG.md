@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-23
+
 ### Fixed
 
 - The query of a meter sends its hardware address back exactly as the Eagle
@@ -62,5 +64,6 @@ the notes of the version's GitHub Release.
 - Documentation in English and French; `LICENSE` (Apache-2.0) and
   `THIRD_PARTY_NOTICES.md` (aioeagle, Apache-2.0), shipped in the image.
 
-[Unreleased]: https://github.com/LM1LC3N7/gladys-rainforest-eagle/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/LM1LC3N7/gladys-rainforest-eagle/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/LM1LC3N7/gladys-rainforest-eagle/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/LM1LC3N7/gladys-rainforest-eagle/releases/tag/v0.1.1
