@@ -10,6 +10,26 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Fixed
+
+- The query of a meter sends its hardware address back exactly as the Eagle
+  listed it (case and leading zeros kept, as aioeagle does), so a firmware
+  that compares it as text still answers; the device id is unchanged.
+- A device list without `ConnectionStatus` no longer reads as "not linked":
+  a missing status is unknown, as in the answer of the meter; only a status
+  read and other than `Connected` holds the values back.
+- The status gives the number of devices of the Eagle left out (not an
+  electricity meter, unreadable address), instead of saying that no meter
+  is joined.
+- The XML reader accepts the tab, line feed and carriage return references.
+
+### Changed
+
+- Docs and manifest: one read is the device list then one request per meter;
+  an HTTP 429 to any request pauses the reads; the energy sent to the grid
+  stays empty without solar panels. TODO: `LastContact`, firmware without
+  `ConnectionStatus`.
+
 ## [0.1.1] - 2026-10-23
 
 ### Added

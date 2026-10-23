@@ -6,7 +6,8 @@
 //   backtracking regular expression);
 // - bounded: at most MAX_ELEMENTS elements and MAX_DEPTH levels;
 // - no DOCTYPE, no entity of its own (only the five XML ones and numeric
-//   references): a DOCTYPE is refused, nothing is ever expanded;
+//   references): a DOCTYPE is refused, nothing is ever expanded; a bare `&`
+//   that starts no reference (`AT&T`) is kept as text, as is;
 // - attributes are skipped (the Eagle sends none that matter);
 // - elements are `{ name, children, text }` in plain arrays: no key of the
 //   answer ever becomes a property name (no prototype pollution).
@@ -35,7 +36,9 @@ export function decodeText(raw) {
     if (ref[0] === '#') {
       const code =
         ref[1] === 'x' || ref[1] === 'X' ? parseInt(ref.slice(2), 16) : Number(ref.slice(1));
-      if (!(code >= 0x20 && code <= 0x10ffff) || (code >= 0xd800 && code <= 0xdfff)) {
+      // Tab, line feed and carriage return are allowed, as in XML 1.0.
+      const white = code === 0x09 || code === 0x0a || code === 0x0d;
+      if (!(white || (code >= 0x20 && code <= 0x10ffff)) || (code >= 0xd800 && code <= 0xdfff)) {
         throw new XmlError('reference');
       }
       return String.fromCodePoint(code);

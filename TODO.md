@@ -24,7 +24,15 @@
 - [ ] The answer to refused credentials (401, as aioeagle reads it) and to a
       malformed command.
 - [ ] Whether the `ConnectionStatus` of the device list follows a lost meter
-      quickly enough to stop stale values.
+      quickly enough to stop stale values, and whether every firmware
+      (Eagle-3?) sends it at all (missing: read as unknown, the values go).
+- [ ] `LastContact` (hexadecimal seconds, clock of the Eagle) is not read: if
+      an Eagle keeps "Connected" with frozen values, they are sent again (no
+      delta for the index, the guard does not move). Read it once seen on a
+      real gateway, compared with the clock of the Eagle, never ours.
+- [ ] A real answer that ends in `not_xml`: the XML reader keeps a bare `&`
+      (`AT&T`) as text and accepts `&#9;`, `&#10;`, `&#13;`; anything else
+      odd refuses the whole answer.
 
 ## Decisions
 
@@ -49,8 +57,11 @@
   (the `HardwareAddress` of the device list, `0x` dropped, lower case, hex
   only, at most 16 digits): it belongs to the meter, so a new gateway or a
   new IP address keeps the device and its history. An unreadable address
-  leaves that entry out (counted, never taken for another meter); the
-  answer of a query naming another meter is refused. At most 4 meters.
+  leaves that entry out (counted, never taken for another meter; the status
+  gives the number of devices left out); the answer of a query naming
+  another meter is refused. At most 4 meters. The query sends the address
+  back exactly as listed (case, leading zeros), once checked to be the same
+  hexadecimal address (review 1, point 1).
 - **Identity of the gateway at every read**: the device list is asked first,
   with the Cloud ID and the install code; another Eagle at the address (DHCP)
   refuses them (401: refused, final, see below); another device gives an
@@ -75,8 +86,10 @@
   meter gives it (as gladys-energieleser). No daily value, never
   `publishEnergyConsumption` (tested). The price variables of the meter are
   not read (often `invalid`, currency of the utility).
-- **Stale values**: a meter whose `ConnectionStatus` is not `Connected` (in
-  the list or in its own answer) publishes nothing; the status names it.
+- **Stale values**: a meter whose `ConnectionStatus` is read and not
+  `Connected` (in the list or in its own answer) publishes nothing; the
+  status names it. A status missing on either side is unknown, the same rule
+  for both (review 1, point 3).
 - **Pace (lot 11)**: one read = one `device_list` + one `device_query` per
   meter, one second apart (aioeagle), 30 s by default (30-300 s, Home
   Assistant reads every 30 s). The timer looks every 5 s whether a read is

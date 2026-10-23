@@ -30,7 +30,8 @@ son adresse matérielle, ex. `0x00abcd123`) :
   maison, pour le suivi énergétique de Gladys (Gladys en calcule elle-même la
   consommation et le coût) ;
 - **énergie envoyée au réseau** (kWh, total) : un simple capteur, **jamais**
-  compté comme une consommation.
+  compté comme une consommation. Elle n'est jamais envoyée à 0 : sans panneaux
+  solaires (rien n'est jamais envoyé au réseau), elle reste vide, c'est normal.
 
 ### Suivi énergétique
 
@@ -59,8 +60,9 @@ n'envoie jamais de consommation journalière.
 4. **Code d'installation** : gardé par Gladys dans sa base, jamais réaffiché ;
    envoyé seulement à l'Eagle (dans l'en-tête de ses requêtes), jamais
    journalisé.
-5. **Intervalle de lecture** : 30 s par défaut, de 30 à 300 s (deux petites
-   requêtes par compteur, à une seconde d'intervalle).
+5. **Intervalle de lecture** : 30 s par défaut, de 30 à 300 s (à chaque
+   lecture : la liste des appareils, puis une petite requête par compteur, à
+   une seconde d'intervalle : deux requêtes pour un compteur).
 6. Après la première lecture, créez l'appareil du compteur depuis l'onglet
    **Découverte**.
 
@@ -104,9 +106,13 @@ Gladys compte chaque hausse d'un index en entier. Pour ne jamais compter une
   reconnaître des identifiants refusés après un redémarrage, `/data` garde une
   empreinte salée de la paire refusée seulement (jamais d'une paire qui
   fonctionne), effacée à la première lecture réussie.
-- Une réponse HTTP 429 ou 5xx de la liste des appareils met l'Eagle en pause
-  de 1 minute à 6 heures, gardée dans `/data`. Une erreur de lecture d'un
-  compteur laisse seulement ce compteur de côté : les autres sont publiés.
+- Une réponse HTTP 429 (à n'importe quelle requête) ou 5xx de la liste des
+  appareils met l'Eagle en pause de 1 minute à 6 heures, gardée dans `/data`.
+  Une autre erreur de lecture d'un compteur laisse seulement ce compteur de
+  côté : les autres sont publiés.
+- Les appareils de l'Eagle qui ne sont pas des compteurs électriques, ou dont
+  l'adresse matérielle est illisible, sont ignorés ; l'état en donne le
+  nombre.
 - Un Eagle injoignable est réessayé après 1 minute, puis 2, jusqu'à
   15 minutes, jamais plus vite que l'intervalle.
 - Chaque lecture commence par la liste des appareils, avec les identifiants

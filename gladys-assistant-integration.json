@@ -73,8 +73,8 @@
       "max": 300,
       "label": { "en": "Reading interval (s)", "fr": "Intervalle de lecture (s)" },
       "description": {
-        "en": "How often the Eagle is read (two small requests per meter, one second apart): 30 s by default, more if you wish. Nothing reads it faster, not even the test button.",
-        "fr": "Fréquence de lecture de l'Eagle (deux petites requêtes par compteur, à une seconde d'intervalle) : 30 s par défaut, plus si vous le souhaitez. Rien ne le lit plus vite, pas même le bouton de test."
+        "en": "How often the Eagle is read (the device list, then one small request per meter, one second apart): 30 s by default, more if you wish. Nothing reads it faster, not even the test button.",
+        "fr": "Fréquence de lecture de l'Eagle (la liste des appareils, puis une petite requête par compteur, à une seconde d'intervalle) : 30 s par défaut, plus si vous le souhaitez. Rien ne le lit plus vite, pas même le bouton de test."
       }
     }
   ],

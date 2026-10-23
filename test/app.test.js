@@ -487,3 +487,37 @@ test('a meter no longer listed keeps its device, gets nothing, and the status sa
   assert.match(status(gladys).message.fr, /Plus listé par l’Eagle : 0x00abcd123/);
   assert.equal(gladys.fake.discoveredDevices.length, 1, 'never lost from Discovery');
 });
+
+test('review 1, point 1: a firmware that wants the address as listed still answers', async () => {
+  const routes = eagle({ meters: [{ id: METER, address: '0x00ABCD123' }] });
+  const { app, gladys, fake } = await setup({ routes, devices: [created()] });
+  await app.start(CONFIG);
+  await app.idle();
+  assert.equal(last(gladys, 'power'), 1965);
+  assert.match(fake.calls[1].init.body, /<HardwareAddress>0x00ABCD123<\/HardwareAddress>/);
+  assert.equal(gladys.fake.discoveredDevices[0].external_id, DEVICE());
+});
+
+test('review 1, point 2: devices left out are counted in the status, never "no meter joined"', async () => {
+  const routes = eagle({
+    meters: [
+      { id: METER, address: 'zz' },
+      { id: 'def', model: 'gas_meter' },
+    ],
+  });
+  const { app, gladys } = await setup({ routes });
+  await app.start(CONFIG);
+  await app.idle();
+  assert.match(status(gladys).message.fr, /2 appareils de l’Eagle ignorés/);
+  assert.match(status(gladys).message.en, /2 devices of the Eagle left out/);
+  assert.doesNotMatch(status(gladys).message.fr, /est-il appairé/);
+});
+
+test('review 1, point 3: no ConnectionStatus in the list: the values are published', async () => {
+  const routes = eagle({ meters: [{ id: METER, connected: null }] });
+  const { app, gladys } = await setup({ routes, devices: [created()] });
+  await app.start(CONFIG);
+  await app.idle();
+  assert.equal(last(gladys, 'power'), 1965);
+  assert.doesNotMatch(status(gladys).message.fr, /Non relié/);
+});

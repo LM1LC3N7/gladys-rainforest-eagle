@@ -45,22 +45,33 @@ export const deviceListCommand = () => `<Command><Name>${COMMANDS.DEVICE_LIST}</
  * variable: `All` = `Y`; asking for the three variables by name misses
  * CurrentSummationDelivered on some firmware, the library says).
  */
-export function deviceQueryCommand(id) {
+export function deviceQueryCommand(id, listed = hardwareAddress(id)) {
   if (hardwareId(id) !== id) {
     throw new TypeError('hardware id');
   }
+  // The address goes back exactly as the device list wrote it (aioeagle sends
+  // the string it read: case and leading zeros kept), once checked to be the
+  // same hexadecimal address; the external id stays the normalized one.
+  const sent = typeof listed === 'string' ? listed.trim() : '';
+  if (hardwareId(sent) !== id) {
+    throw new TypeError('hardware address');
+  }
   return (
     `<Command><Name>${COMMANDS.DEVICE_QUERY}</Name>` +
-    `<DeviceDetails><HardwareAddress>${hardwareAddress(id)}</HardwareAddress></DeviceDetails>` +
+    `<DeviceDetails><HardwareAddress>${sent}</HardwareAddress></DeviceDetails>` +
     '<Components><All>Y</All></Components></Command>'
   );
 }
 
 /**
- * The meters of a device list: `{ meters: [{ id, connected }], others }`,
- * the electricity meters with a readable hardware address (at most
- * MAX_METERS, in the order of the list), and how many other devices
- * (unknown models, unreadable addresses) were left out.
+ * The meters of a device list: `{ meters: [{ id, address, connected }],
+ * others }`, the electricity meters with a readable hardware address (at
+ * most MAX_METERS, in the order of the list), and how many other devices
+ * (unknown models, unreadable addresses, duplicates) were left out.
+ * `address`: the hardware address as listed (sent back in its query);
+ * `connected`: true, false, or undefined when the list gives no status
+ * (unknown, as in the answer of the meter: only a status read and other than
+ * "Connected" holds its values back).
  * @throws AnswerError when it is not a device list.
  */
 export function parseDeviceList(root) {
@@ -71,7 +82,8 @@ export function parseDeviceList(root) {
   let others = 0;
   const seen = new Set();
   for (const device of children(root, 'Device')) {
-    const id = hardwareId(textOf(device, 'HardwareAddress'));
+    const address = textOf(device, 'HardwareAddress')?.trim();
+    const id = hardwareId(address);
     if (textOf(device, 'ModelId') !== ELECTRIC_METER || !id || seen.has(id)) {
       others += 1;
       continue;
@@ -81,7 +93,12 @@ export function parseDeviceList(root) {
       continue;
     }
     seen.add(id);
-    meters.push({ id, connected: textOf(device, 'ConnectionStatus') === 'Connected' });
+    const status = textOf(device, 'ConnectionStatus');
+    meters.push({
+      id,
+      address,
+      connected: status === undefined ? undefined : status === 'Connected',
+    });
   }
   return { meters, others };
 }

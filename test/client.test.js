@@ -35,7 +35,7 @@ const setup = (overrides) => {
 test('one read: POST of the two read commands, Basic credentials, no redirect, 1 s apart', async () => {
   const { client, fake, sleeps } = setup();
   const read = await client.readAll(ADDRESS, CREDENTIALS);
-  assert.deepEqual(read.meters, [{ id: METER, connected: true }]);
+  assert.deepEqual(read.meters, [{ id: METER, address: '0x00abcd123', connected: true }]);
   assert.deepEqual(read.values.get(METER), {
     connected: true,
     power: 1965,

@@ -129,6 +129,10 @@ export const T = {
       en: 'The Eagle lists no electricity meter: is it joined to your meter (see its app or its web page)?',
       fr: 'L’Eagle ne liste aucun compteur électrique : est-il appairé à votre compteur (voir son application ou sa page web) ?',
     },
+    others: (count) => ({
+      en: `${count} device${count === 1 ? '' : 's'} of the Eagle left out (not an electricity meter, unreadable hardware address, or more than 4 meters).`,
+      fr: `${count} appareil${count > 1 ? 's' : ''} de l’Eagle ignoré${count > 1 ? 's' : ''} (pas un compteur électrique, adresse matérielle illisible, ou plus de 4 compteurs).`,
+    }),
     noDevice: {
       en: 'Create the meter device from the "Discover" tab to receive its values.',
       fr: 'Créez l’appareil du compteur depuis l’onglet « Découverte » pour recevoir ses valeurs.',

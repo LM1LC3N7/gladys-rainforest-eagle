@@ -43,6 +43,7 @@ test('xml: hostile or broken answers are refused', () => {
     '<!DOCTYPE A [<!ENTITY x "y">]><A>&x;</A>',
     '<A>&unknown;</A>',
     '<A>&#0;</A>',
+    '<A>&#27;</A>',
     '<1A></1A>',
     '<A><!-- open</A>',
     `${'<A>'.repeat(MAX_DEPTH + 1)}${'</A>'.repeat(MAX_DEPTH + 1)}`,
@@ -105,8 +106,8 @@ test('the device list: electricity meters with a readable address, the rest coun
     ),
   );
   assert.deepEqual(list.meters, [
-    { id: METER, connected: true },
-    { id: 'abc', connected: false },
+    { id: METER, address: '0x00abcd123', connected: true },
+    { id: 'abc', address: '0xabc', connected: false },
   ]);
   assert.equal(list.others, 2);
   assert.deepEqual(parseDeviceList(parseXml('<DeviceList></DeviceList>')), {
@@ -171,4 +172,25 @@ test('numbers and hardware addresses are strict', () => {
   for (const raw of ['', '0x', 'zz', '0x12345678901234567', undefined]) {
     assert.equal(hardwareId(raw), undefined, String(raw));
   }
+});
+
+test('review 1, point 1: the query sends the address back exactly as listed, once checked', () => {
+  const list = parseDeviceList(parseXml(deviceList([{ id: METER, address: ' 0x00ABCD123 ' }])));
+  assert.deepEqual(list.meters, [{ id: METER, address: '0x00ABCD123', connected: true }]);
+  assert.match(
+    deviceQueryCommand(METER, list.meters[0].address),
+    /<HardwareAddress>0x00ABCD123<\/HardwareAddress>/,
+  );
+  assert.throws(() => deviceQueryCommand(METER, '0x00abcd124'), TypeError);
+  assert.throws(() => deviceQueryCommand(METER, '0x00abcd123<x>'), TypeError);
+});
+
+test('review 1, point 3: a list without ConnectionStatus is unknown, never "not linked"', () => {
+  const list = parseDeviceList(parseXml(deviceList([{ id: METER, connected: null }])));
+  assert.deepEqual(list.meters, [{ id: METER, address: '0x00abcd123', connected: undefined }]);
+});
+
+test('review 1, point 7: tab, line feed and carriage return references; a bare & kept', () => {
+  assert.equal(parseXml('<A>a&#9;b&#10;c&#13;</A>').text, 'a\tb\nc');
+  assert.equal(parseXml('<A>AT&T</A>').text, 'AT&T');
 });

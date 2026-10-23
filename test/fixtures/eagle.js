@@ -21,10 +21,13 @@ export const xml = (body, status = 200, headers = {}) =>
 export const deviceList = (meters) =>
   `<DeviceList>${meters
     .map(
-      ({ id, connected = true, model = 'electric_meter' }) =>
-        `<Device><HardwareAddress>0x${id}</HardwareAddress><Manufacturer>Generic</Manufacturer>` +
+      ({ id, connected = true, model = 'electric_meter', address = `0x${id}` }) =>
+        `<Device><HardwareAddress>${address}</HardwareAddress><Manufacturer>Generic</Manufacturer>` +
         `<ModelId>${model}</ModelId><Protocol>Zigbee</Protocol><LastContact>0x611d885a</LastContact>` +
-        `<ConnectionStatus>${connected ? 'Connected' : 'Not Joined'}</ConnectionStatus>` +
+        // `connected: null`: a firmware that sends no ConnectionStatus in the list.
+        (connected === null
+          ? ''
+          : `<ConnectionStatus>${connected ? 'Connected' : 'Not Joined'}</ConnectionStatus>`) +
         `<NetworkAddress>0x0000</NetworkAddress><Name>Power Meter</Name></Device>`,
     )
     .join('')}</DeviceList>`;
@@ -78,8 +81,11 @@ export function eagle({
     }
     if (command === 'device_list') return xml(deviceList(state.meters));
     if (command === 'device_query') {
-      const id = /<HardwareAddress>0x([0-9a-f]+)<\/HardwareAddress>/.exec(call.init.body)[1];
-      return xml(deviceQuery({ id, ...state.values[id] }));
+      // A picky firmware: the address must come back exactly as listed.
+      const sent = /<HardwareAddress>([^<]*)<\/HardwareAddress>/.exec(call.init.body)[1];
+      const meter = state.meters.find((m) => (m.address ?? `0x${m.id}`) === sent);
+      if (!meter) return xml('', 500);
+      return xml(deviceQuery({ id: meter.id, ...state.values[meter.id] }));
     }
     return xml('', 400);
   };

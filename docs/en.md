@@ -30,7 +30,8 @@ hardware address, e.g. `0x00abcd123`):
   for the Gladys energy monitoring (Gladys computes the consumption and its
   cost from it);
 - **energy sent to the grid** (kWh, total): a plain sensor, **never** counted
-  as consumption.
+  as consumption. It is never sent at 0: without solar panels (nothing ever
+  sent to the grid), it stays empty, which is normal.
 
 ### Energy monitoring
 
@@ -58,8 +59,9 @@ daily consumption.
 3. **Cloud ID**: never logged.
 4. **Install code**: kept by Gladys in its database, never shown again; sent
    only to the Eagle (in the header of its requests), never logged.
-5. **Reading interval**: 30 s by default, 30 to 300 s (two small requests per
-   meter, one second apart).
+5. **Reading interval**: 30 s by default, 30 to 300 s (each read: the device list,
+   then one small request per meter, one second apart: two requests for one
+   meter).
 6. After the first read, create the meter device from the **Discover** tab.
 
 The **Test the connection** button reads the Eagle once if the interval has
@@ -97,9 +99,12 @@ ever counted, the consumption index goes through a guard:
   click. To recognize refused credentials after a restart, `/data` keeps a
   salted fingerprint of the refused pair only (never of a working one),
   erased by the first successful read.
-- An HTTP 429 or 5xx answer of the device list pauses the reads from 1 minute
-  to 6 hours, kept in `/data`. An error of the query of one meter only leaves
-  that meter out: the others are published.
+- An HTTP 429 answer (to any request) or a 5xx answer of the device list
+  pauses the reads from 1 minute to 6 hours, kept in `/data`. Another error
+  of the query of one meter only leaves that meter out: the others are
+  published.
+- Devices of the Eagle that are not electricity meters, or whose hardware
+  address cannot be read, are left out; the status gives their number.
 - An unreachable Eagle is tried again after 1 minute, then 2, up to
   15 minutes, never faster than the interval.
 - Every read starts with the device list, with the credentials of the label:

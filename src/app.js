@@ -521,11 +521,15 @@ export class EagleApp {
     return this.guards.get(featureId);
   }
 
-  /** Whether the meter is linked to the Eagle, by the list and by its own answer. */
+  /**
+   * Whether the meter is linked to the Eagle, by the list and by its own answer:
+   * only a status read and other than "Connected" holds it back (a status
+   * missing on either side is unknown, the same rule for both).
+   */
   static linked(reading, id) {
     const listed = reading.meters.find((m) => m.id === id);
     const values = reading.values.get(id);
-    return Boolean(listed?.connected) && values?.connected !== false;
+    return Boolean(listed) && listed.connected !== false && values?.connected !== false;
   }
 
   /**
@@ -651,7 +655,8 @@ export class EagleApp {
     }
     const reading = this.reading;
     const notes = [];
-    if (reading.meters.length === 0) notes.push(T.notes.noMeter);
+    if (reading.meters.length === 0 && reading.others === 0) notes.push(T.notes.noMeter);
+    if (reading.others > 0) notes.push(T.notes.others(reading.others));
     const listed = reading.meters.map((m) => m.id);
     if (listed.some((id) => !this.createdDevice(id))) notes.push(T.notes.noDevice);
     const unlinked = listed.filter((id) => reading.values.has(id) && !EagleApp.linked(reading, id));

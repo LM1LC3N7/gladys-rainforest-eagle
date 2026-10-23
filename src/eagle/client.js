@@ -174,9 +174,9 @@ export class EagleClient {
     }
   }
 
-  /** The values of one meter (src/eagle/model.js parseDeviceQuery). */
-  async readMeter(address, credentials, id) {
-    const root = await this.post(address, credentials, deviceQueryCommand(id));
+  /** The values of one meter (src/eagle/model.js parseDeviceQuery); listed: its address as listed. */
+  async readMeter(address, credentials, id, listed) {
+    const root = await this.post(address, credentials, deviceQueryCommand(id, listed));
     try {
       return parseDeviceQuery(root, id);
     } catch (err) {
@@ -200,12 +200,12 @@ export class EagleClient {
   async readAll(address, credentials, alive = () => true) {
     const { meters, others } = await this.readDeviceList(address, credentials);
     const result = { meters, others, values: new Map(), missing: [], denied: [] };
-    for (const [n, { id }] of meters.entries()) {
+    for (const [n, { id, address: listed }] of meters.entries()) {
       if (!alive()) {
         break;
       }
       try {
-        result.values.set(id, await this.readMeter(address, credentials, id));
+        result.values.set(id, await this.readMeter(address, credentials, id, listed));
       } catch (err) {
         if (err.code === 'rate_limited') {
           throw err;
