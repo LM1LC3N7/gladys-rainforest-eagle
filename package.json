@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
-  "version": "1.0.0",
+  "name": "gladys-rainforest-eagle",
+  "version": "0.1.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Rainforest Eagle-200 and Eagle-3 for Gladys Assistant: the power and the energy indexes of the smart meter, read through the local API of the gateway. Read-only.",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -10,10 +10,15 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --test"
+    "test": "node --test",
+    "audit": "npm audit --omit=dev"
   },
   "engines": {
     "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LM1LC3N7/gladys-rainforest-eagle.git"
   },
   "dependencies": {
     "@gladysassistant/integration-sdk": "^0.15.0"

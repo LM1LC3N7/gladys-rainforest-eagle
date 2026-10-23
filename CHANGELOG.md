@@ -12,44 +12,32 @@ the notes of the version's GitHub Release.
 
 ### Added
 
-- A working example of scene triggers, scene actions and dashboard widgets
-  (Gladys 5.1.0 or later).
-- `CHANGELOG.md`, rolled by the Release workflow.
-- A GitHub Release for every version, with its changelog section as notes: the
-  Gladys Supervision page links each version to the repository's releases.
-- CI runs the tests on Node 22 and 24, and builds the Docker image.
-- Dependabot keeps the npm dependencies and the GitHub Actions up to date.
-- `SECURITY.md` (how to report a vulnerability) and `CLAUDE.md` (project rules
-  for contributors and coding assistants).
-- Manifest tests: `version` matches `package.json`, `docker_image` is tagged
-  with it, descriptions hold 10 to 100 characters, placeholders are
-  multi-language objects.
-- The latitude and longitude fields show an example value as placeholder.
+- Local reading of a Rainforest Eagle-200 (and Eagle-3, same local API, not
+  verified) as the aioeagle library does: the `device_list` and
+  `device_query` commands POSTed as XML to `/cgi-bin/post_manager`, with the
+  Cloud ID and the install code as HTTP Basic credentials, one second apart,
+  every 30 s by default (30 to 300 s). Read-only: nothing else is ever sent.
+- One device per electricity meter, keyed by its hardware address: the net
+  power (W, negative when sending to the grid), the consumption index for
+  the energy monitoring, and the energy sent to the grid as a plain sensor
+  (never counted as consumption).
+- The consumption index goes through the guard of gladys-p1-monitor: never
+  0, jumps and drops held (also across restarts) until the "Accept the held
+  index" button is clicked twice.
+- Never a read faster than the interval: not the test button, Discovery, a
+  reconnection, a save of an unchanged configuration nor a restart (the last
+  request is kept in `/data`, written at most once a minute). A read that
+  ends after a restart or a new configuration publishes nothing.
+- Refused credentials stop the reads for good, kept in `/data` (a salted
+  fingerprint of the refused pair only, erased by the first success): only
+  other credentials saved, or a click on "Test the connection", try again.
+  HTTP 429 and 5xx of the device list pause the reads from 1 minute to 6
+  hours; an error of one meter only leaves that meter out. A meter the Eagle
+  no longer reaches publishes nothing.
+- A small XML reader of our own: bounded (256 KiB, elements and depth),
+  linear, no DOCTYPE nor entity expansion, no key of the answer as a property.
+- "Test the connection" and "Accept the held index" buttons.
+- Documentation in English and French; `LICENSE` (Apache-2.0) and
+  `THIRD_PARTY_NOTICES.md` (aioeagle, Apache-2.0), shipped in the image.
 
-### Changed
-
-- Node.js 22 or later is required (Node 20 is end-of-life).
-- Integration SDK 0.15.0. The tests now run against the fake Gladys of the
-  SDK, which refuses the payloads Gladys refuses.
-- The refresh interval is one minute minimum, the fastest Gladys polls a
-  device. The plug's power is only sent when it changes, and every 30
-  minutes otherwise.
-
-### Fixed
-
-- Gladys refused the devices of the Discovery tab: the weather station and
-  the plug declared their poll frequency in seconds instead of one of the
-  values Gladys accepts, and were never polled. They now poll every minute,
-  and the readings follow the refresh interval of the configuration.
-
-- The release commit no longer fails `npm run format:check`: the Release
-  workflow updates the manifest `version` and `docker_image` in place instead
-  of re-printing the whole file with `jq`.
-- The integration can write to `/data`: the image creates the directory owned
-  by the `node` user, a new Docker volume was owned by root.
-- A sub-container running the integration's own image follows it to the new
-  tag at each release, as well as in the manifest of the build summary: it kept
-  the previous tag, which may not exist on the registry. Sub-containers on a
-  third-party image (a broker, a database...) keep theirs.
-
-[Unreleased]: https://github.com/GladysAssistant/integration-template-js/commits/main
+[Unreleased]: https://github.com/LM1LC3N7/gladys-rainforest-eagle/commits/main

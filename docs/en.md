@@ -1,61 +1,116 @@
-# Demo Devices Template
+# Rainforest Eagle
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+**Unofficial** integration, not affiliated with Rainforest Automation. It
+reads your **Rainforest Eagle-200** or **Eagle-3** energy gateway (the Zigbee
+gateway that reads the smart electricity meter of many utilities in the
+United States and Canada) on your local network, through its local API
+(HTTP), with the Cloud ID and the install code printed on its label, without
+any cloud.
+
+**Never tested with a real device**: the integration was written from the
+[aioeagle](https://github.com/home-assistant-libs/aioeagle) library (the one
+of Home Assistant), without an Eagle at hand. The Eagle-3 is expected to
+answer like the Eagle-200 (same local API), this is not verified. The old
+Eagle-100 (another API) is not supported. Your feedback is welcome.
+
+## Read-only
+
+The integration **only reads** (the `device_list` and `device_query` commands
+of the local API). It never changes anything on the gateway nor on the meter
+(no price, no message confirmation, no setting).
 
 ## What you get
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+One device per electricity meter the Eagle reads (named "Eagle meter" and its
+hardware address, e.g. `0x00abcd123`):
+
+- **power** (W): the instantaneous demand of the meter, **negative** when the
+  home sends power to the grid (solar);
+- **consumption index** (kWh): the energy the meter delivered to the home,
+  for the Gladys energy monitoring (Gladys computes the consumption and its
+  cost from it);
+- **energy sent to the grid** (kWh, total): a plain sensor, **never** counted
+  as consumption.
+
+### Energy monitoring
+
+The consumption index is the energy taken from the grid, as measured by the
+meter of your utility. If another integration already sends this same meter
+to Gladys (another gateway, a utility account), **keep only one source**,
+otherwise the consumption is counted twice. The integration never sends a
+daily consumption.
+
+## Requirements
+
+- Gladys 5.2.0 or later.
+- The Eagle on the same network as Gladys, its local API reachable over HTTP
+  (port 80), already joined to your meter (see its app).
+- The **Cloud ID** (6 characters) and the **install code** (16 characters):
+  on the label under the gateway.
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+1. Install the integration from the Gladys store.
+2. **Eagle IP address**: its address on your network (with `:port` only if it
+   is not 80). Preferably give it a fixed address in your router (the
+   `eagle-<cloud id>.local` name usually does not resolve inside a
+   container).
+3. **Cloud ID**: never logged.
+4. **Install code**: kept by Gladys in its database, never shown again; sent
+   only to the Eagle (in the header of its requests), never logged.
+5. **Reading interval**: 30 s by default, 30 to 300 s (two small requests per
+   meter, one second apart).
+6. After the first read, create the meter device from the **Discover** tab.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+The **Test the connection** button reads the Eagle once if the interval has
+passed; otherwise it shows the last read and when the next one can be.
 
-## Actions
+## Pace of the reads
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+Nothing reads the Eagle faster than the interval: not the test button, not
+the Discover tab, not a reconnection to Gladys, not a save of an unchanged
+configuration, not a restart of the container (the instant of the last read
+is kept in `/data`, written at most once a minute: after a restart, the first
+read waits the interval plus one minute). A new address or new credentials
+are tried at once.
 
-## Scenes
+## Held index
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+Gladys counts each rise of an index in full. So that no fictive energy is
+ever counted, the consumption index goes through a guard:
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+- a value of 0 is never sent;
+- a drop, or a rise faster than 100 kW on average, is **held**: the last
+  accepted value is sent again, and the status of the integration shows it.
+  Neither time nor repetition confirm it (it stays held after a restart);
+- if it is right, click **Accept the held index** **twice**: the first click
+  lists what is held without accepting anything, the second, from 3 seconds
+  to 5 minutes later, accepts exactly what was listed (a jump is then counted
+  at once, a drop counts nothing). Saving the configuration accepts nothing.
 
-## Dashboard
+## Errors
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+- **Credentials refused** (HTTP 401/403 of the device list): the reads stop
+  and **never start again by themselves** (a wrong install code is never
+  tried in a loop); the stop is kept in `/data` across restarts. Saving other
+  credentials tries them at once; **Test the connection** tries once per
+  click. To recognize refused credentials after a restart, `/data` keeps a
+  salted fingerprint of the refused pair only (never of a working one),
+  erased by the first successful read.
+- An HTTP 429 or 5xx answer of the device list pauses the reads from 1 minute
+  to 6 hours, kept in `/data`. An error of the query of one meter only leaves
+  that meter out: the others are published.
+- An unreachable Eagle is tried again after 1 minute, then 2, up to
+  15 minutes, never faster than the interval.
+- Every read starts with the device list, with the credentials of the label:
+  another Eagle that takes the address (DHCP) refuses them and gives nothing;
+  another device answers something that is not an Eagle answer, nothing is
+  published.
+- A meter the Eagle no longer reaches (not "Connected") publishes nothing (its
+  values would be stale); the status says so.
 
-## Troubleshooting
+## Privacy
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+Nothing leaves your network: the integration only talks to the Eagle, over
+local HTTP, and follows no redirect. The install code travels in clear text
+on your local network (HTTP Basic), as for any client of this local API.
