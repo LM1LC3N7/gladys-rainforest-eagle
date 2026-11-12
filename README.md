@@ -12,7 +12,7 @@ never changes anything on the gateway nor on the meter.
 Automation. The Eagle-100 (another API) is not supported.
 
 - User guide: [English](docs/en.md), [français](docs/fr.md).
-- Requirements: Gladys 5.2.0 or later, the Eagle on the same network, its
+- Requirements: Gladys 5.3.0 or later, the Eagle on the same network, its
   Cloud ID and install code.
 
 ## How it works
