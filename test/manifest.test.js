@@ -56,7 +56,7 @@ test('the store basics; the same version everywhere', () => {
   assert.deepEqual(manifest.categories, ['energy']);
   assert.deepEqual(manifest.transports, ['local']);
   assert.equal(manifest.network_discovery, undefined, 'no network scan');
-  assert.match(manifest.gladys_version, />=\s*5\.2\.0/);
+  assert.match(manifest.gladys_version, />=\s*5\.3\.0/);
   for (const lang of ['en', 'fr']) {
     const length = manifest.description[lang].length;
     assert.ok(length >= 10 && length <= 100, `description.${lang}: ${length} characters`);
@@ -187,4 +187,13 @@ test('the consumption index is the only index; the energy sent to the grid is ne
   );
   assert.equal(CATALOG.find((e) => e.key === 'injection_index').spec.category, C.UNKNOWN);
   assert.ok(!CATALOG.some((e) => /daily/.test(e.spec.type)));
+});
+
+test('the catalog countries: the United States and Canada, which needs Gladys >= 5.3.0', () => {
+  assert.deepEqual(manifest.countries, ['US', 'CA']);
+  const [major, minor] = manifest.gladys_version
+    .match(/>=\s*(\d+)\.(\d+)/)
+    .slice(1)
+    .map(Number);
+  assert.ok(major > 5 || (major === 5 && minor >= 3), 'countries needs Gladys 5.3.0');
 });
