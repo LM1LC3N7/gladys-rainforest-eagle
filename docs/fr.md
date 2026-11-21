@@ -43,7 +43,7 @@ n'envoie jamais de consommation journalière.
 
 ## Prérequis
 
-- Gladys 5.2.0 ou plus récent.
+- Gladys 5.3.0 ou plus récent.
 - L'Eagle sur le même réseau que Gladys, son API locale joignable en HTTP
   (port 80), déjà appairé à votre compteur (voir son application).
 - Le **Cloud ID** (6 caractères) et le **code d'installation** (16

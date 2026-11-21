@@ -2,7 +2,7 @@
 
 ## Before announcing
 
-- [ ] Test on a real Gladys 5.2+ with a real Eagle-200 (and an Eagle-3): the
+- [ ] Test on a real Gladys 5.3+ with a real Eagle-200 (and an Eagle-3): the
       test button, device creation, the consumption index in the energy
       monitoring.
 - [ ] Test the Docker image (no Docker on the development PC yet).
@@ -117,7 +117,7 @@
   resolves in a container).
 - **States per minute**: a sliding budget of 270 states over 60 s, taken
   before each publication.
-- **Gladys version**: `>=5.2.0`, like the other energy integrations.
+- **Gladys version**: `>=5.3.0` for the catalog countries (the energy features need 5.2.0, like the other energy integrations).
 
 ## Ideas
 

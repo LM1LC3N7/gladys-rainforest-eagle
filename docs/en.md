@@ -43,7 +43,7 @@ daily consumption.
 
 ## Requirements
 
-- Gladys 5.2.0 or later.
+- Gladys 5.3.0 or later.
 - The Eagle on the same network as Gladys, its local API reachable over HTTP
   (port 80), already joined to your meter (see its app).
 - The **Cloud ID** (6 characters) and the **install code** (16 characters):
